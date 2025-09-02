@@ -82,6 +82,18 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
 
+        .btn:disabled {
+            background: linear-gradient(45deg, #6c757d, #495057) !important;
+            color: #999 !important;
+            cursor: not-allowed !important;
+            opacity: 0.6;
+        }
+
+        .btn:disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
         .add-movie {
             background: rgba(255, 255, 255, 0.9);
             padding: 20px;
@@ -346,10 +358,10 @@
         </div>
 
         <div class="controls">
-            <button class="btn btn-secondary" onclick="toggleColumn(3)">
+            <button class="btn btn-secondary" onclick="toggleColumn(3)" id="toggle1-btn">
                 <span id="toggle1-text">UKRYJ PUNKTY #1</span>
             </button>
-            <button class="btn btn-secondary" onclick="toggleColumn(4)">
+            <button class="btn btn-secondary" onclick="toggleColumn(4)" id="toggle2-btn">
                 <span id="toggle2-text">UKRYJ PUNKTY #2</span>
             </button>
             <button class="btn btn-primary" onclick="sortMovies()">📊 WYNIKI</button>
@@ -400,7 +412,10 @@
         </div>
 
         <div id="winners-section" class="winners-section hidden">
-            <h3 style="color: #333; text-align: center; margin: 30px 0 20px 0;">🎬 HISTORIA OBEJRZANYCH FILMÓW</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color: #333; margin: 0;">🎬 HISTORIA OBEJRZANYCH FILMÓW</h3>
+                <button class="btn btn-secondary" onclick="removeLastWinner()" id="removeLastButton" style="background: linear-gradient(45deg, #ffc107, #ffca2c); padding: 8px 16px; font-size: 0.8em; display: none;">❌ USUŃ OSTATNI</button>
+            </div>
             <div class="winners-container">
                 <div id="winners-list" class="winners-list"></div>
             </div>
@@ -572,9 +587,19 @@
                     return options;
                 };
 
+                // Sprawdź czy kolumna jest całkowicie zablokowana
+                const isScore1Locked = hiddenColumns.includes(3);
+                const isScore2Locked = hiddenColumns.includes(4);
+                
                 // Sprawdź czy osoba #2 może głosować na ten film
                 const hasScore1 = movie.score1 !== '';
-                const canVoteScore2 = hasScore1; // Osoba #2 może głosować tylko na filmy z punktami #1
+                const canVoteScore2 = hasScore1 && !isScore2Locked; // Osoba #2 może głosować tylko na filmy z punktami #1 i jeśli jej kolumna nie jest zablokowana
+                
+                const score1Select = isScore1Locked ? 
+                    `<div style="padding: 8px; text-align: center; color: #999; font-style: italic;">ukryte</div>` :
+                    `<select class="score-input" onchange="updateScore(${movie.id}, 1, this.value)">
+                        ${generateOptions(1, movie.score1)}
+                    </select>`;
                 
                 const score2Select = canVoteScore2 ? 
                     `<select class="score-input" onchange="updateScore(${movie.id}, 2, this.value)">
@@ -589,9 +614,7 @@
                     <td><span style="${titleWeight}">${movie.title}</span></td>
                     <td>${movie.link !== '#' ? `<a href="${movie.link}" target="_blank" class="movie-link">🔗 Link</a>` : '-'}</td>
                     <td class="score-column-1">
-                        <select class="score-input" onchange="updateScore(${movie.id}, 1, this.value)">
-                            ${generateOptions(1, movie.score1)}
-                        </select>
+                        ${score1Select}
                     </td>
                     <td class="score-column-2">
                         ${score2Select}
@@ -634,24 +657,32 @@
             const columnClass = `.score-column-${columnIndex - 2}`;
             const headerClass = `score${columnIndex - 2}-header`;
             const toggleText = document.getElementById(`toggle${columnIndex - 2}-text`);
+            const toggleBtn = document.getElementById(`toggle${columnIndex - 2}-btn`);
 
             if (hiddenColumns.includes(columnIndex)) {
-                hiddenColumns = hiddenColumns.filter(col => col !== columnIndex);
-                document.querySelectorAll(columnClass).forEach(el => el.classList.remove('hidden'));
-                document.getElementById(headerClass).classList.remove('hidden');
-                toggleText.textContent = `UKRYJ PUNKTY #${columnIndex - 2}`;
-                
-                // Wyczyść zapamiętaną randomizację gdy pokazujemy punkty
-                if (columnIndex === 3) randomizedOrder1 = [];
-                if (columnIndex === 4) randomizedOrder2 = [];
+                // Tylko kolumna #2 może być odkryta
+                if (columnIndex === 4) {
+                    hiddenColumns = hiddenColumns.filter(col => col !== columnIndex);
+                    document.querySelectorAll(columnClass).forEach(el => el.classList.remove('hidden'));
+                    document.getElementById(headerClass).classList.remove('hidden');
+                    toggleText.textContent = `UKRYJ PUNKTY #${columnIndex - 2}`;
+                    
+                    // Wyczyść zapamiętaną randomizację gdy pokazujemy punkty
+                    randomizedOrder2 = [];
+                } else {
+                    // Kolumna #1 nie może być odkryta po ukryciu
+                    alert('PUNKTY #1 SĄ ZABLOKOWANE! Nie można ich odkryć po ukryciu.');
+                    return;
+                }
             } else {
                 hiddenColumns.push(columnIndex);
                 document.querySelectorAll(columnClass).forEach(el => el.classList.add('hidden'));
                 document.getElementById(headerClass).classList.add('hidden');
-                toggleText.textContent = `POKAŻ PUNKTY #${columnIndex - 2}`;
                 
-                // Utwórz randomizację TYLKO raz gdy ukrywamy punkty
                 if (columnIndex === 3) {
+                    toggleText.textContent = 'ZABLOKOWANE';
+                    toggleBtn.disabled = true;
+                    
                     const moviesWithScore1 = movies.filter(m => m.score1 !== '');
                     randomizedOrder1 = [...moviesWithScore1];
                     for (let i = randomizedOrder1.length - 1; i > 0; i--) {
@@ -659,6 +690,8 @@
                         [randomizedOrder1[i], randomizedOrder1[j]] = [randomizedOrder1[j], randomizedOrder1[i]];
                     }
                 } else if (columnIndex === 4) {
+                    toggleText.textContent = `POKAŻ PUNKTY #${columnIndex - 2}`;
+                    
                     const moviesWithScore2 = movies.filter(m => m.score2 !== '');
                     randomizedOrder2 = [...moviesWithScore2];
                     for (let i = randomizedOrder2.length - 1; i > 0; i--) {
@@ -695,15 +728,24 @@
                 return;
             }
 
-            const winner = completeMovies.reduce((max, movie) => {
-                const totalScore = (parseFloat(movie.score1) || 0) + (parseFloat(movie.score2) || 0);
-                const maxScore = (parseFloat(max.score1) || 0) + (parseFloat(max.score2) || 0);
-                return totalScore > maxScore ? movie : max;
-            });
+            // Znajdź najwyższy wynik
+            const maxScore = Math.max(...completeMovies.map(movie => 
+                (parseFloat(movie.score1) || 0) + (parseFloat(movie.score2) || 0)
+            ));
 
+            // Znajdź wszystkich zwycięzców z najwyższym wynikiem
+            const topMovies = completeMovies.filter(movie => 
+                (parseFloat(movie.score1) || 0) + (parseFloat(movie.score2) || 0) === maxScore
+            );
+
+            // W przypadku remisu wybierz losowego zwycięzcę
+            const winner = topMovies[Math.floor(Math.random() * topMovies.length)];
             const winnerScore = (parseFloat(winner.score1) || 0) + (parseFloat(winner.score2) || 0);
 
-            if (confirm(`CZY NA PEWNO CHCESZ ZAKOŃCZYĆ GŁOSOWANIE?\nZWYCIĘZCA "${winner.title}" ZOSTANIE USUNIĘTY Z BAZY I DODANY DO HISTORII OBEJRZANYCH.`)) {
+            const remisMessage = topMovies.length > 1 ? 
+                `\n\nREMIS! ${topMovies.length} filmów miało ${winnerScore} punktów. Losowo wybrano: "${winner.title}"` : '';
+
+            if (confirm(`CZY NA PEWNO CHCESZ ZAKOŃCZYĆ GŁOSOWANIE?\nZWYCIĘZCA "${winner.title}" ZOSTANIE USUNIĘTY Z BAZY I DODANY DO HISTORII OBEJRZANYCH.${remisMessage}`)) {
                 winners.push({
                     id: Date.now(),
                     title: winner.title,
@@ -712,7 +754,8 @@
                     score1: winner.score1,
                     score2: winner.score2,
                     originalId: winner.id,
-                    date: new Date().toLocaleDateString('pl-PL')
+                    date: new Date().toLocaleDateString('pl-PL'),
+                    wasRemis: topMovies.length > 1
                 });
 
                 movies = movies.filter(m => m.id !== winner.id);
@@ -735,6 +778,7 @@
                 // Przywróć przyciski do stanu początkowego
                 document.getElementById('toggle1-text').textContent = 'UKRYJ PUNKTY #1';
                 document.getElementById('toggle2-text').textContent = 'UKRYJ PUNKTY #2';
+                document.getElementById('toggle1-btn').disabled = false;
 
                 showWinner = false;
                 renderTable();
@@ -742,7 +786,8 @@
                 updateStats();
                 document.getElementById('winner-announcement').classList.add('hidden');
                 
-                alert(`🏆 "${winner.title}" WYGRAŁ I ZOSTAŁ USUNIĘTY Z BAZY!\nPUNKTY ZOSTAŁY WYCZYSZCZONE - MOŻECIE GŁOSOWAĆ NA POZOSTAŁE FILMY!`);
+                const remisAlert = topMovies.length > 1 ? ` (wygrał losowo przy remisie!)` : '';
+                alert(`🏆 "${winner.title}" WYGRAŁ I ZOSTAŁ USUNIĘTY Z BAZY!${remisAlert}\nPUNKTY ZOSTAŁY WYCZYSZCZONE - MOŻECIE GŁOSOWAĆ NA POZOSTAŁE FILMY!`);
             }
         }
 
@@ -772,6 +817,7 @@
                 hiddenColumns = [];
                 document.getElementById('toggle1-text').textContent = 'UKRYJ PUNKTY #1';
                 document.getElementById('toggle2-text').textContent = 'UKRYJ PUNKTY #2';
+                document.getElementById('toggle1-btn').disabled = false;
 
                 showWinner = true;
                 renderTable();
