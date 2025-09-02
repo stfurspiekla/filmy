@@ -19,9 +19,9 @@ FILMOWE WYBIERAŃSKO to innowacyjny system głosowania przeznaczony dla dwóch o
 - Blokada bezpieczeństwa: Niemożliwe podglądanie ukrytych punktów
 
 🏆 Demokratyczne Rozstrzyganie
-Punkty 1-10: Każda osoba może przyznać każdą ocenę tylko raz (maksymalnie 10 filmów)
-Remisy: Automatyczne losowanie zwycięzcy przy równych wynikach
-Historia: Pełny tracking obejrzanych filmów z punktami i datami
+- Punkty 1-10: Każda osoba może przyznać każdą ocenę tylko raz (maksymalnie 10 filmów)
+- Remisy: Automatyczne losowanie zwycięzcy przy równych wynikach
+- Historia: Pełny tracking obejrzanych filmów z punktami i datami
 
 📋 ZASADY DZIAŁANIA
 
@@ -42,64 +42,52 @@ FAZA 3: Reakcja (Osoba #2)
 - Swoje filmy również sortują się na żywo według jej punktów
 
 FAZA 4: Rozstrzygnięcie
-"📊 WYNIKI" → pełny ranking według sumy punktów
-"🏁 ZAKOŃCZ GŁOSOWANIE" → zwycięzca trafia do historii i znika z bazy
-Remis? → System automatycznie losuje zwycięzcę
-Reset → możecie głosować na pozostałe filmy
+- "📊 WYNIKI" → pełny ranking według sumy punktów
+- "🏁 ZAKOŃCZ GŁOSOWANIE" → zwycięzca trafia do historii i znika z bazy
+- Remis? → System automatycznie losuje zwycięzcę
+- Reset → możecie głosować na pozostałe filmy
 
 🎮 UNIKALNE FEATURES
 
 💡 Inteligentne UX
-Live feedback: Pogrubienie filmów z punktami, sortowanie na żywo
-Smart dropdown'y: Automatyczne ukrywanie użytych punktów
-Visual hierarchy: Medalki, rankingi, kolorystyka
+- Live feedback: Pogrubienie filmów z punktami, sortowanie na żywo
+- Smart dropdown'y: Automatyczne ukrywanie użytych punktów
+- Visual hierarchy: Medalki, rankingi, kolorystyka
 
 🔒 System Bezpieczeństwa
-Blokada podglądania: Niemożliwe odkrycie ukrytych punktów
-Stabilna randomizacja: Filmy nie skaczą podczas głosowania Osoby #2
-Session integrity: Zapamiętywanie stanu podczas głosowania
+- Blokada podglądania: Niemożliwe odkrycie ukrytych punktów
+- Stabilna randomizacja: Filmy nie skaczą podczas głosowania Osoby #2
+- Session integrity: Zapamiętywanie stanu podczas głosowania
 
 📊 Zarządzanie Historią
-Historia obejrzanych: Sortowana według punktów z datami
-Oznaczenia remisów: Ikona 🎲 przy filmach wygranych losowo
-Funkcje cofania: "↩️ COFNIJ" (przywraca film + punkty) lub "❌ USUŃ OSTATNI" (czyści historię)
+- Historia obejrzanych: Sortowana według punktów z datami
+- Oznaczenia remisów: Ikona 🎲 przy filmach wygranych losowo
+- Funkcje cofania: "↩️ COFNIJ" (przywraca film + punkty) lub "❌ USUŃ OSTATNI" (czyści historię)
 
 🎯 Strategiczne Elementy
-Różne władze: Selektor vs Reaktor - różne odpowiedzialności
-Ukryte informacje: Nie znasz punktów przeciwnika, tylko wybory
-Losowość: Eliminacja bias'u przez randomizację
+- Różne władze: Selektor vs Reaktor - różne odpowiedzialności
+- Ukryte informacje: Nie znasz punktów przeciwnika, tylko wybory
+- Losowość: Eliminacja bias'u przez randomizację
 
 🚀 FLOW UŻYTKOWANIA
-📚 DODAJ FILMY
-    ↓
-👤 OSOBA #1: Głosuj + Live Sorting
-    ↓
-🔒 UKRYJ PUNKTY #1 → Randomizacja
-    ↓
-👤 OSOBA #2: Głosuj na pogrubione + Live Sorting
-    ↓
-📊 WYNIKI → 🏆 Winner Announcement
-    ↓
-🏁 ZAKOŃCZ GŁOSOWANIE → Historia + Reset
-    ↓
-🔄 Następna runda na pozostałych filmach
+📚 DODAJ FILMY → 👤 OSOBA #1: Głosuj + Live Sorting → 🔒 UKRYJ PUNKTY #1 → Randomizacja → 👤 OSOBA #2: Głosuj na pogrubione + Live Sorting → WYNIKI → 🏆 Winner Announcement → 🏁 ZAKOŃCZ GŁOSOWANIE → Historia + Reset → 🔄 Następna runda na pozostałych filmach
 
 🎨 DESIGN PHILOSOPHY
 
 FILMOWE WYBIERAŃSKO to nie tylko narzędzie - to doświadczenie. Każdy element został zaprojektowany z myślą o:
 
-Fairness: Równe szanse przy różnych rolach
-Strategy: Głębokie decyzje bez pełnej informacji
-Fun: Emocjonujący proces z elementem losowości
-Simplicity: Intuicyjny interface mimo złożonej mechaniki
+- Fairness: Równe szanse przy różnych rolach
+- Strategy: Głębokie decyzje bez pełnej informacji
+- Fun: Emocjonujący proces z elementem losowości
+- Simplicity: Intuicyjny interface mimo złożonej mechaniki
 
 🔧 TECHNICZNE SPECYFIKACJE
 
-Platform: Web-based (HTML5 + JavaScript)
-Storage: In-memory (session-based)
-Compatibility: Wszystkie nowoczesne przeglądarki
-Mobile: Responsive design
-Deployment: GitHub Pages ready
+- Platform: Web-based (HTML5 + JavaScript)
+- Storage: In-memory (session-based)
+- Compatibility: Wszystkie nowoczesne przeglądarki
+- Mobile: Responsive design
+- Deployment: GitHub Pages ready
 
 🎬 PERFECT FOR
 
