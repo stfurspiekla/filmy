@@ -3,8 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arkusz Oceny Filmów</title>
+    <title>FILMOWE WYBIERAŃSKO</title>
     <style>
+        :root {
+            /* Light theme colors */
+            --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-container: rgba(255, 255, 255, 0.95);
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --bg-table: white;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --text-muted: #999;
+            --border-color: #e1e5e9;
+            --border-light: #f0f0f0;
+            --shadow-color: rgba(0,0,0,0.1);
+            --shadow-strong: rgba(0,0,0,0.2);
+            --hover-bg: rgba(102, 126, 234, 0.05);
+        }
+
+        [data-theme="dark"] {
+            /* Dark theme colors */
+            --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --bg-container: rgba(30, 30, 45, 0.95);
+            --bg-card: rgba(40, 40, 60, 0.9);
+            --bg-table: #2d2d4a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --text-muted: #888;
+            --border-color: #4a4a6a;
+            --border-light: #3a3a5a;
+            --shadow-color: rgba(0,0,0,0.3);
+            --shadow-strong: rgba(0,0,0,0.5);
+            --hover-bg: rgba(102, 126, 234, 0.15);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,34 +45,63 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--bg-primary);
             min-height: 100vh;
             padding: 20px;
+            transition: all 0.3s ease;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--bg-container);
             border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px var(--shadow-color);
             backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
 
         .header {
             text-align: center;
             margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            flex: 1;
         }
 
         .header h1 {
-            color: #333;
+            color: var(--text-primary);
             font-size: 2.5em;
             margin-bottom: 10px;
             background: linear-gradient(45deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-primary);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px var(--shadow-color);
         }
 
         .controls {
@@ -79,7 +140,7 @@
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 20px var(--shadow-strong);
         }
 
         .btn:disabled {
@@ -95,11 +156,16 @@
         }
 
         .add-movie {
-            background: rgba(255, 255, 255, 0.9);
+            background: var(--bg-card);
             padding: 20px;
             border-radius: 15px;
             margin-bottom: 30px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 20px var(--shadow-color);
+            transition: all 0.3s ease;
+        }
+
+        .add-movie h3 {
+            color: var(--text-primary);
         }
 
         .movie-input {
@@ -113,10 +179,12 @@
             flex: 1;
             min-width: 200px;
             padding: 12px 16px;
-            border: 2px solid #e1e5e9;
+            border: 2px solid var(--border-color);
             border-radius: 10px;
             font-size: 1em;
             transition: border-color 0.3s ease;
+            background: var(--bg-table);
+            color: var(--text-primary);
         }
 
         .movie-input input:focus {
@@ -125,11 +193,16 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
+        .movie-input input::placeholder {
+            color: var(--text-muted);
+        }
+
         .table-container {
-            background: white;
+            background: var(--bg-table);
             border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px var(--shadow-color);
+            transition: all 0.3s ease;
         }
 
         table {
@@ -150,11 +223,13 @@
 
         td {
             padding: 12px 16px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
         }
 
         tr:hover {
-            background-color: rgba(102, 126, 234, 0.05);
+            background-color: var(--hover-bg);
             transform: scale(1.01);
             transition: all 0.2s ease;
         }
@@ -171,16 +246,25 @@
             text-decoration: underline;
         }
 
+        [data-theme="dark"] .movie-link {
+            color: #8fa4f3;
+        }
+
+        [data-theme="dark"] .movie-link:hover {
+            color: #a386c8;
+        }
+
         .score-input {
             width: 80px;
             padding: 8px;
-            border: 2px solid #e1e5e9;
+            border: 2px solid var(--border-color);
             border-radius: 8px;
             text-align: center;
             font-weight: 600;
             transition: all 0.3s ease;
-            background: white;
+            background: var(--bg-table);
             cursor: pointer;
+            color: var(--text-primary);
         }
 
         .score-input:focus {
@@ -189,10 +273,15 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
+        .score-input:disabled {
+            background: var(--border-light);
+            color: var(--text-muted);
+        }
+
         .total-score {
             font-weight: 700;
             font-size: 1.2em;
-            color: #333;
+            color: var(--text-primary);
             background: linear-gradient(45deg, #ffecd2, #fcb69f);
             padding: 8px;
             border-radius: 8px;
@@ -233,6 +322,11 @@
             animation: pulse 2s infinite;
         }
 
+        [data-theme="dark"] .winner-announcement {
+            background: linear-gradient(45deg, #b8860b, #daa520);
+            color: #1a1a2e;
+        }
+
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
@@ -240,11 +334,16 @@
         }
 
         .winners-section {
-            background: rgba(255, 255, 255, 0.9);
+            background: var(--bg-card);
             border-radius: 15px;
             padding: 20px;
             margin-top: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px var(--shadow-color);
+            transition: all 0.3s ease;
+        }
+
+        .winners-section h3 {
+            color: var(--text-primary);
         }
 
         .winners-list {
@@ -253,10 +352,10 @@
         }
 
         .winner-item {
-            background: white;
+            background: var(--bg-table);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px var(--shadow-color);
             border-left: 5px solid;
             transition: all 0.3s ease;
             display: flex;
@@ -266,7 +365,7 @@
 
         .winner-item:hover {
             transform: translateX(5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 25px var(--shadow-color);
         }
 
         .winner-item:nth-child(1) { border-left-color: #ffd700; }
@@ -281,7 +380,7 @@
         .winner-title {
             font-size: 1.2em;
             font-weight: 600;
-            color: #333;
+            color: var(--text-primary);
             margin-bottom: 5px;
         }
 
@@ -312,11 +411,12 @@
         }
 
         .stat-card {
-            background: rgba(255, 255, 255, 0.9);
+            background: var(--bg-card);
             padding: 20px;
             border-radius: 15px;
             text-align: center;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 20px var(--shadow-color);
+            transition: all 0.3s ease;
         }
 
         .stat-number {
@@ -331,6 +431,20 @@
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .theme-toggle {
+                align-self: center;
             }
             
             .movie-input {
@@ -348,13 +462,28 @@
             th, td {
                 padding: 8px 12px;
             }
+            
+            .score-input {
+                width: 60px;
+            }
+        }
+
+        /* Smooth transitions for theme switching */
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎬 FILMOWE WYBIERAŃSKO</h1>
+            <div class="header-title">
+                <h1>🎬 FILMOWE WYBIERAŃSKO</h1>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">
+                <span id="themeIcon">🌙</span>
+                <span id="themeText">Dark</span>
+            </button>
         </div>
 
         <div class="controls">
@@ -370,7 +499,7 @@
         </div>
 
         <div class="add-movie">
-            <h3 style="margin-bottom: 15px; color: #333;">➕ DODAJ NOWY FILM</h3>
+            <h3 style="margin-bottom: 15px; color: var(--text-primary);">➕ DODAJ NOWY FILM</h3>
             <div class="movie-input">
                 <input type="text" id="movieTitle" placeholder="TYTUŁ FILMU..." />
                 <input type="url" id="movieLink" placeholder="LINK DO STRONY (OPCJONALNIE)..." />
@@ -413,7 +542,7 @@
 
         <div id="winners-section" class="winners-section hidden">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="color: #333; margin: 0;">🎬 HISTORIA OBEJRZANYCH FILMÓW</h3>
+                <h3 style="color: var(--text-primary); margin: 0;">🎬 HISTORIA OBEJRZANYCH FILMÓW</h3>
                 <button class="btn btn-secondary" onclick="removeLastWinner()" id="removeLastButton" style="background: linear-gradient(45deg, #ffc107, #ffca2c); padding: 8px 16px; font-size: 0.8em; display: none;">❌ USUŃ OSTATNI</button>
             </div>
             <div class="winners-container">
@@ -427,8 +556,93 @@
         let hiddenColumns = [];
         let showWinner = false;
         let winners = [];
-        let randomizedOrder1 = []; // Zapamiętana randomizacja dla osoby #1
-        let randomizedOrder2 = []; // Zapamiętana randomizacja dla osoby #2
+        let randomizedOrder1 = [];
+        let randomizedOrder2 = [];
+
+        // FUNKCJE ZAPISU I ODCZYTU DANYCH
+        function saveData() {
+            try {
+                localStorage.setItem('movieVoting_movies', JSON.stringify(movies));
+                localStorage.setItem('movieVoting_winners', JSON.stringify(winners));
+                localStorage.setItem('movieVoting_hiddenColumns', JSON.stringify(hiddenColumns));
+                localStorage.setItem('movieVoting_randomOrder1', JSON.stringify(randomizedOrder1));
+                localStorage.setItem('movieVoting_randomOrder2', JSON.stringify(randomizedOrder2));
+                localStorage.setItem('movieVoting_showWinner', JSON.stringify(showWinner));
+            } catch (error) {
+                console.error('Błąd zapisu danych:', error);
+            }
+        }
+
+        function loadData() {
+            try {
+                const savedMovies = localStorage.getItem('movieVoting_movies');
+                const savedWinners = localStorage.getItem('movieVoting_winners'); 
+                const savedHiddenColumns = localStorage.getItem('movieVoting_hiddenColumns');
+                const savedRandomOrder1 = localStorage.getItem('movieVoting_randomOrder1');
+                const savedRandomOrder2 = localStorage.getItem('movieVoting_randomOrder2');
+                const savedShowWinner = localStorage.getItem('movieVoting_showWinner');
+                
+                if (savedMovies && JSON.parse(savedMovies).length > 0) {
+                    movies = JSON.parse(savedMovies);
+                } else {
+                    addSampleMovies();
+                }
+                
+                if (savedWinners) winners = JSON.parse(savedWinners);
+                if (savedHiddenColumns) {
+                    hiddenColumns = JSON.parse(savedHiddenColumns);
+                    // Przywróć stan przycisków
+                    hiddenColumns.forEach(col => {
+                        if (col === 3) {
+                            document.getElementById('toggle1-text').textContent = 'ZABLOKOWANE';
+                            document.getElementById('toggle1-btn').disabled = true;
+                        } else if (col === 4) {
+                            document.getElementById('toggle2-text').textContent = 'POKAŻ PUNKTY #2';
+                        }
+                    });
+                }
+                if (savedRandomOrder1) randomizedOrder1 = JSON.parse(savedRandomOrder1);
+                if (savedRandomOrder2) randomizedOrder2 = JSON.parse(savedRandomOrder2);
+                if (savedShowWinner) showWinner = JSON.parse(savedShowWinner);
+            } catch (error) {
+                console.error('Błąd ładowania danych:', error);
+                addSampleMovies();
+            }
+        }
+
+        // DARK MODE FUNCTIONALITY
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Dark';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            if (savedTheme === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light';
+            } else {
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Dark';
+            }
+        }
 
         function addMovie() {
             const title = document.getElementById('movieTitle').value.trim();
@@ -448,10 +662,10 @@
             };
 
             movies.push(movie);
+            saveData();
             renderTable();
             updateStats();
 
-            // Wyczyść pola
             document.getElementById('movieTitle').value = '';
             document.getElementById('movieLink').value = '';
         }
@@ -460,40 +674,33 @@
             const tbody = document.getElementById('movieTable');
             tbody.innerHTML = '';
 
-            // Pobierz użyte punkty dla każdej osoby
             const usedScores1 = movies.map(m => m.score1).filter(score => score !== '').map(score => parseFloat(score));
             const usedScores2 = movies.map(m => m.score2).filter(score => score !== '').map(score => parseFloat(score));
 
-            // LIVE SORTOWANIE podczas głosowania
             let sortedMovies = [...movies];
             const isScore1Hidden = hiddenColumns.includes(3);
             const isScore2Hidden = hiddenColumns.includes(4);
             
             if (showWinner) {
-                // WYNIKI: Sortuj według sumy punktów
                 sortedMovies.sort((a, b) => {
                     const totalA = (parseFloat(a.score1) || 0) + (parseFloat(a.score2) || 0);
                     const totalB = (parseFloat(b.score1) || 0) + (parseFloat(b.score2) || 0);
                     return totalB - totalA;
                 });
             } else if (isScore1Hidden && !isScore2Hidden) {
-                // PUNKTY #1 UKRYTE - stabilna randomizacja + live sorting dla #2
                 const moviesWithoutScore1 = movies.filter(m => m.score1 === '');
                 
-                // Użyj zapamiętanej randomizacji dla filmów z punktami #1
                 let stableRandomizedOrder1 = randomizedOrder1.filter(movie => 
                     movies.some(m => m.id === movie.id)
                 );
                 
-                // LIVE SORTOWANIE filmów z punktami #1 według punktów #2
                 stableRandomizedOrder1.sort((a, b) => {
                     const scoreA = parseFloat(a.score2) || 0;
                     const scoreB = parseFloat(b.score2) || 0;
-                    if (scoreA === 0 && scoreB === 0) return 0; // Zachowaj randomizację dla filmów bez punktów #2
+                    if (scoreA === 0 && scoreB === 0) return 0;
                     return scoreB - scoreA;
                 });
 
-                // LIVE SORTOWANIE dla filmów bez punktów #1 według punktów #2
                 moviesWithoutScore1.sort((a, b) => {
                     const scoreA = parseFloat(a.score2) || 0;
                     const scoreB = parseFloat(b.score2) || 0;
@@ -504,23 +711,19 @@
                 sortedMovies = [...stableRandomizedOrder1, ...moviesWithoutScore1];
                 
             } else if (isScore2Hidden && !isScore1Hidden) {
-                // PUNKTY #2 UKRYTE - stabilna randomizacja + live sorting dla #1
                 const moviesWithoutScore2 = movies.filter(m => m.score2 === '');
                 
-                // Użyj zapamiętanej randomizacji dla filmów z punktami #2
                 let stableRandomizedOrder2 = randomizedOrder2.filter(movie => 
                     movies.some(m => m.id === movie.id)
                 );
                 
-                // LIVE SORTOWANIE filmów z punktami #2 według punktów #1
                 stableRandomizedOrder2.sort((a, b) => {
                     const scoreA = parseFloat(a.score1) || 0;
                     const scoreB = parseFloat(b.score1) || 0;
-                    if (scoreA === 0 && scoreB === 0) return 0; // Zachowaj randomizację dla filmów bez punktów #1
+                    if (scoreA === 0 && scoreB === 0) return 0;
                     return scoreB - scoreA;
                 });
 
-                // LIVE SORTOWANIE dla filmów bez punktów #2 według punktów #1
                 moviesWithoutScore2.sort((a, b) => {
                     const scoreA = parseFloat(a.score1) || 0;
                     const scoreB = parseFloat(b.score1) || 0;
@@ -531,12 +734,10 @@
                 sortedMovies = [...stableRandomizedOrder2, ...moviesWithoutScore2];
                 
             } else if (!isScore1Hidden && !isScore2Hidden) {
-                // NORMALNE GŁOSOWANIE: Live sortowanie według aktywnej osoby
                 const count1 = usedScores1.length;
                 const count2 = usedScores2.length;
                 
                 if (count1 > 0 && count1 >= count2) {
-                    // Osoba #1 głosuje - sortuj według jej punktów
                     sortedMovies.sort((a, b) => {
                         const scoreA = parseFloat(a.score1) || 0;
                         const scoreB = parseFloat(b.score1) || 0;
@@ -544,7 +745,6 @@
                         return scoreB - scoreA;
                     });
                 } else if (count2 > 0) {
-                    // Osoba #2 głosuje - sortuj według jej punktów
                     sortedMovies.sort((a, b) => {
                         const scoreA = parseFloat(a.score2) || 0;
                         const scoreB = parseFloat(b.score2) || 0;
@@ -553,7 +753,6 @@
                     });
                 }
             }
-            // Jeśli oba ukryte lub żadna osoba nie głosowała, zostaw oryginalną kolejność
 
             sortedMovies.forEach((movie, index) => {
                 const row = document.createElement('tr');
@@ -568,11 +767,9 @@
                     else if (index === 2) rankClass = 'rank-3';
                 }
 
-                // Proste pogrubienie dla filmów z głosami
                 const hasVotes = movie.score1 !== '' || movie.score2 !== '';
                 const titleWeight = hasVotes ? 'font-weight: 700;' : 'font-weight: 400;';
 
-                // Wygeneruj opcje dla select'ów
                 const generateOptions = (scoreType, currentValue) => {
                     const usedScores = scoreType === 1 ? usedScores1 : usedScores2;
                     let options = '<option value="">-</option>';
@@ -587,16 +784,14 @@
                     return options;
                 };
 
-                // Sprawdź czy kolumna jest całkowicie zablokowana
                 const isScore1Locked = hiddenColumns.includes(3);
                 const isScore2Locked = hiddenColumns.includes(4);
                 
-                // Sprawdź czy osoba #2 może głosować na ten film
                 const hasScore1 = movie.score1 !== '';
-                const canVoteScore2 = hasScore1 && !isScore2Locked; // Osoba #2 może głosować tylko na filmy z punktami #1 i jeśli jej kolumna nie jest zablokowana
+                const canVoteScore2 = hasScore1 && !isScore2Locked;
                 
                 const score1Select = isScore1Locked ? 
-                    `<div style="padding: 8px; text-align: center; color: #999; font-style: italic;">ukryte</div>` :
+                    `<div style="padding: 8px; text-align: center; color: var(--text-muted); font-style: italic;">ukryte</div>` :
                     `<select class="score-input" onchange="updateScore(${movie.id}, 1, this.value)">
                         ${generateOptions(1, movie.score1)}
                     </select>`;
@@ -605,7 +800,7 @@
                     `<select class="score-input" onchange="updateScore(${movie.id}, 2, this.value)">
                         ${generateOptions(2, movie.score2)}
                     </select>` :
-                    `<select class="score-input" disabled style="background: #f5f5f5; color: #ccc;">
+                    `<select class="score-input" disabled style="background: var(--border-light); color: var(--text-muted);">
                         <option>-</option>
                     </select>`;
 
@@ -628,7 +823,6 @@
                 tbody.appendChild(row);
             });
 
-            // Zastosuj ukryte kolumny
             hiddenColumns.forEach(col => {
                 const elements = document.querySelectorAll(`.score-column-${col - 2}`);
                 elements.forEach(el => el.classList.add('hidden'));
@@ -640,14 +834,16 @@
             const movie = movies.find(m => m.id === movieId);
             if (movie) {
                 movie[`score${scoreType}`] = value;
+                saveData();
                 updateStats();
-                renderTable(); // Odśwież tabelę żeby zaktualizować pogrubienia
+                renderTable();
             }
         }
 
         function removeMovie(movieId) {
             if (confirm('CZY NA PEWNO CHCESZ USUNĄĆ TEN FILM?')) {
                 movies = movies.filter(m => m.id !== movieId);
+                saveData();
                 renderTable();
                 updateStats();
             }
@@ -660,17 +856,13 @@
             const toggleBtn = document.getElementById(`toggle${columnIndex - 2}-btn`);
 
             if (hiddenColumns.includes(columnIndex)) {
-                // Tylko kolumna #2 może być odkryta
                 if (columnIndex === 4) {
                     hiddenColumns = hiddenColumns.filter(col => col !== columnIndex);
                     document.querySelectorAll(columnClass).forEach(el => el.classList.remove('hidden'));
                     document.getElementById(headerClass).classList.remove('hidden');
                     toggleText.textContent = `UKRYJ PUNKTY #${columnIndex - 2}`;
-                    
-                    // Wyczyść zapamiętaną randomizację gdy pokazujemy punkty
                     randomizedOrder2 = [];
                 } else {
-                    // Kolumna #1 nie może być odkryta po ukryciu
                     alert('PUNKTY #1 SĄ ZABLOKOWANE! Nie można ich odkryć po ukryciu.');
                     return;
                 }
@@ -701,7 +893,7 @@
                 }
             }
             
-            // Przeładuj tabelę żeby zaktualizować sortowanie po zmianie widoczności
+            saveData();
             renderTable();
         }
 
@@ -712,6 +904,7 @@
                 return totalB - totalA;
             });
             showWinner = true;
+            saveData();
             renderTable();
             checkWinner();
         }
@@ -728,17 +921,14 @@
                 return;
             }
 
-            // Znajdź najwyższy wynik
             const maxScore = Math.max(...completeMovies.map(movie => 
                 (parseFloat(movie.score1) || 0) + (parseFloat(movie.score2) || 0)
             ));
 
-            // Znajdź wszystkich zwycięzców z najwyższym wynikiem
             const topMovies = completeMovies.filter(movie => 
                 (parseFloat(movie.score1) || 0) + (parseFloat(movie.score2) || 0) === maxScore
             );
 
-            // W przypadku remisu wybierz losowego zwycięzcę
             const winner = topMovies[Math.floor(Math.random() * topMovies.length)];
             const winnerScore = (parseFloat(winner.score1) || 0) + (parseFloat(winner.score2) || 0);
 
@@ -770,17 +960,16 @@
                     [movies[i], movies[j]] = [movies[j], movies[i]];
                 }
 
-                // Wyczyść zapamiętane randomizacje
                 randomizedOrder1 = [];
                 randomizedOrder2 = [];
                 hiddenColumns = [];
 
-                // Przywróć przyciski do stanu początkowego
                 document.getElementById('toggle1-text').textContent = 'UKRYJ PUNKTY #1';
                 document.getElementById('toggle2-text').textContent = 'UKRYJ PUNKTY #2';
                 document.getElementById('toggle1-btn').disabled = false;
 
                 showWinner = false;
+                saveData();
                 renderTable();
                 renderWinners();
                 updateStats();
@@ -808,10 +997,8 @@
                     score2: lastWinner.score2
                 });
 
-                // Usuń winnera z historii
                 winners.pop();
 
-                // Przywróć stan randomizacji i kolumn
                 randomizedOrder1 = [];
                 randomizedOrder2 = [];
                 hiddenColumns = [];
@@ -820,6 +1007,7 @@
                 document.getElementById('toggle1-btn').disabled = false;
 
                 showWinner = true;
+                saveData();
                 renderTable();
                 renderWinners();
                 updateStats();
@@ -839,15 +1027,35 @@
             }
         }
 
+        function removeLastWinner() {
+            if (winners.length === 0) {
+                alert('BRAK FILMÓW W HISTORII DO USUNIĘCIA!');
+                return;
+            }
+
+            const lastWinner = winners[winners.length - 1];
+            
+            if (confirm(`CZY NA PEWNO CHCESZ USUNĄĆ "${lastWinner.title}" Z HISTORII OBEJRZANYCH?\nFilm NIE wróci do bazy głosowania.`)) {
+                winners.pop();
+                saveData();
+                renderWinners();
+                updateStats();
+                alert(`🗑️ "${lastWinner.title}" ZOSTAŁ USUNIĘTY Z HISTORII!`);
+            }
+        }
+
         function renderWinners() {
             const winnersList = document.getElementById('winners-list');
             const winnersSection = document.getElementById('winners-section');
             const undoButton = document.getElementById('undoButton');
+            const removeLastButton = document.getElementById('removeLastButton');
             
             if (winners.length > 0) {
                 undoButton.style.display = 'block';
+                removeLastButton.style.display = 'block';
             } else {
                 undoButton.style.display = 'none';
+                removeLastButton.style.display = 'none';
             }
             
             if (winners.length === 0) {
@@ -876,13 +1084,15 @@
                 else if (index === 2 && winner.score < sortedWinners[1].score) medal = '🥉';
                 else medal = `${index + 1}.`;
 
+                const remisIndicator = winner.wasRemis ? ' 🎲' : '';
+
                 winnerDiv.innerHTML = `
                     <div class="winner-info">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <span style="font-size: 1.5em;">${medal}</span>
                             <div>
-                                <div class="winner-title">${winner.title}</div>
-                                <div style="font-size: 0.9em; color: #666; margin-top: 2px;">${winner.date}</div>
+                                <div class="winner-title">${winner.title}${remisIndicator}</div>
+                                <div style="font-size: 0.9em; color: var(--text-secondary); margin-top: 2px;">${winner.date}</div>
                             </div>
                         </div>
                     </div>
@@ -941,9 +1151,6 @@
                     score2: ''
                 });
             });
-            
-            renderTable();
-            updateStats();
         }
 
         document.getElementById('movieTitle').addEventListener('keypress', function(e) {
@@ -958,8 +1165,12 @@
             }
         });
 
-        addSampleMovies();
+        // INICJALIZACJA
+        loadTheme();
+        loadData();
+        renderTable();
         renderWinners();
+        updateStats();
     </script>
 </body>
 </html>
