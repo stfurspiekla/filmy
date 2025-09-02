@@ -706,6 +706,123 @@
             }
         }
 
+        function restartVoting() {
+            if (confirm('CZY NA PEWNO CHCESZ ZRESTARTOWAĆ OBECNE GŁOSOWANIE?\n\nTO WYCZYŚCI:\n- Wszystkie punkty z filmów\n- Ustawienia ukrytych kolumn\n- Stan głosowania\n\nFilmy pozostaną w bazie, historia obejrzanych NIE zostanie usunięta.')) {
+                // Wyczyść wszystkie punkty z filmów
+                movies.forEach(movie => {
+                    movie.score1 = '';
+                    movie.score2 = '';
+                });
+
+                // Zresetuj wszystkie ustawienia głosowania
+                hiddenColumns = [];
+                randomizedOrder1 = [];
+                randomizedOrder2 = [];
+                showWinner = false;
+
+                // Przywróć stan przycisków do domyślnego
+                document.getElementById('toggle1-text').textContent = 'UKRYJ PUNKTY #1';
+                document.getElementById('toggle2-text').textContent = 'UKRYJ PUNKTY #2';
+                document.getElementById('toggle1-btn').disabled = false;
+
+                // Ukryj ogłoszenie zwycięzcy
+                document.getElementById('winner-announcement').classList.add('hidden');
+
+                // Zapisz i odśwież interfejs
+                saveData();
+                renderTable();
+                updateStats();
+                
+                alert('🔄 GŁOSOWANIE ZOSTAŁO ZRESTARTOWANE!\nMożecie zacząć głosować od nowa na te same filmy.');
+            }
+        }
+
+        function exportData() {
+            try {
+                const exportObject = {
+                    movies: movies,
+                    winners: winners,
+                    hiddenColumns: hiddenColumns,
+                    randomizedOrder1: randomizedOrder1,
+                    randomizedOrder2: randomizedOrder2,
+                    showWinner: showWinner,
+                    exportDate: new Date().toLocaleString('pl-PL'),
+                    version: '1.0'
+                };
+
+                const dataStr = JSON.stringify(exportObject, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(dataBlob);
+                link.download = `filmowe-wybieransko-backup-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                alert('✅ BAZA DANYCH ZOSTAŁA WYEKSPORTOWANA!\nPlik został zapisany w folderze Pobrane.');
+            } catch (error) {
+                console.error('Błąd eksportu:', error);
+                alert('❌ BŁĄD PODCZAS EKSPORTU DANYCH!');
+            }
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // Sprawdź czy to właściwy format
+                    if (!importedData.movies || !Array.isArray(importedData.movies)) {
+                        alert('❌ NIEPRAWIDŁOWY FORMAT PLIKU!');
+                        return;
+                    }
+
+                    if (confirm('CZY NA PEWNO CHCESZ WCZYTAĆ DANE Z PLIKU?\n\nTO ZASTĄPI WSZYSTKIE OBECNE DANE:\n- Filmy w bazie\n- Historię obejrzanych\n- Wszystkie ustawienia\n\nTej operacji nie można cofnąć!')) {
+                        movies = importedData.movies || [];
+                        winners = importedData.winners || [];
+                        hiddenColumns = importedData.hiddenColumns || [];
+                        randomizedOrder1 = importedData.randomizedOrder1 || [];
+                        randomizedOrder2 = importedData.randomizedOrder2 || [];
+                        showWinner = importedData.showWinner || false;
+
+                        // Przywróć stan przycisków
+                        document.getElementById('toggle1-text').textContent = 'UKRYJ PUNKTY #1';
+                        document.getElementById('toggle2-text').textContent = 'UKRYJ PUNKTY #2';
+                        document.getElementById('toggle1-btn').disabled = false;
+                        
+                        hiddenColumns.forEach(col => {
+                            if (col === 3) {
+                                document.getElementById('toggle1-text').textContent = 'ZABLOKOWANE';
+                                document.getElementById('toggle1-btn').disabled = true;
+                            } else if (col === 4) {
+                                document.getElementById('toggle2-text').textContent = 'POKAŻ PUNKTY #2';
+                            }
+                        });
+
+                        saveData();
+                        renderTable();
+                        renderWinners();
+                        updateStats();
+                        
+                        const importDate = importedData.exportDate ? `\n(Eksport z: ${importedData.exportDate})` : '';
+                        alert(`✅ DANE ZOSTAŁY POMYŚLNIE WCZYTANE!${importDate}`);
+                    }
+                } catch (error) {
+                    console.error('Błąd importu:', error);
+                    alert('❌ BŁĄD PODCZAS WCZYTYWANIA PLIKU!\nUpewnij się, że wybrałeś właściwy plik JSON.');
+                }
+            };
+            
+            reader.readAsText(file);
+            // Wyczyść input aby można było wczytać ten sam plik ponownie
+            event.target.value = '';
+        }
+
         // DARK MODE FUNCTIONALITY
         function toggleTheme() {
             const body = document.body;
