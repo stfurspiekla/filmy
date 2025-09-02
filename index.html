@@ -43,11 +43,6 @@
             background-clip: text;
         }
 
-        .header p {
-            color: #666;
-            font-size: 1.1em;
-        }
-
         .controls {
             display: flex;
             gap: 15px;
@@ -165,13 +160,15 @@
         }
 
         .score-input {
-            width: 60px;
+            width: 80px;
             padding: 8px;
             border: 2px solid #e1e5e9;
             border-radius: 8px;
             text-align: center;
             font-weight: 600;
             transition: all 0.3s ease;
+            background: white;
+            cursor: pointer;
         }
 
         .score-input:focus {
@@ -350,13 +347,13 @@
 
         <div class="controls">
             <button class="btn btn-secondary" onclick="toggleColumn(3)">
-                <span id="toggle1-text">UKRYJ OCENY #1</span>
+                <span id="toggle1-text">UKRYJ PUNKTY #1</span>
             </button>
             <button class="btn btn-secondary" onclick="toggleColumn(4)">
-                <span id="toggle2-text">UKRYJ OCENY #2</span>
+                <span id="toggle2-text">UKRYJ PUNKTY #2</span>
             </button>
-            <button class="btn btn-primary" onclick="sortMovies()">📊 SORTUJ</button>
-            <button class="btn btn-danger" onclick="clearScores()">🗑️ WYCZYŚĆ OCENY</button>
+            <button class="btn btn-primary" onclick="sortMovies()">📊 WYNIKI</button>
+            <button class="btn btn-secondary" onclick="undoLastVoting()" id="undoButton" style="background: linear-gradient(45deg, #6c757d, #495057); display: none;">↩️ COFNIJ</button>
             <button class="btn btn-primary" onclick="finishVoting()" style="background: linear-gradient(45deg, #28a745, #20c997);">🏁 ZAKOŃCZ GŁOSOWANIE</button>
         </div>
 
@@ -370,7 +367,7 @@
         </div>
 
         <div id="winner-announcement" class="winner-announcement hidden">
-            🏆 <span id="winner-title"></span> WYGRYWA Z WYNIKIEM <span id="winner-score"></span> PUNKTÓW! 🏆
+            🏆 <span id="winner-title"></span> wygrywa z wynikiem <span id="winner-score"></span> punktów! 🏆
         </div>
 
         <div class="table-container">
@@ -380,8 +377,8 @@
                         <th>MIEJSCE</th>
                         <th>TYTUŁ</th>
                         <th>LINK</th>
-                        <th id="score1-header">OCENA #1 (1-10)</th>
-                        <th id="score2-header">OCENA #2 (1-10)</th>
+                        <th id="score1-header">PUNKTY #1 (1-10)</th>
+                        <th id="score2-header">PUNKTY #2 (1-10)</th>
                         <th>SUMA</th>
                         <th>AKCJA</th>
                     </tr>
@@ -414,7 +411,9 @@
         let movies = [];
         let hiddenColumns = [];
         let showWinner = false;
-        let winners = []; // Lista zwycięzców
+        let winners = [];
+        let randomizedOrder1 = []; // Zapamiętana randomizacja dla osoby #1
+        let randomizedOrder2 = []; // Zapamiętana randomizacja dla osoby #2
 
         function addMovie() {
             const title = document.getElementById('movieTitle').value.trim();
@@ -446,32 +445,158 @@
             const tbody = document.getElementById('movieTable');
             tbody.innerHTML = '';
 
-            movies.forEach((movie, index) => {
+            // Pobierz użyte punkty dla każdej osoby
+            const usedScores1 = movies.map(m => m.score1).filter(score => score !== '').map(score => parseFloat(score));
+            const usedScores2 = movies.map(m => m.score2).filter(score => score !== '').map(score => parseFloat(score));
+
+            // LIVE SORTOWANIE podczas głosowania
+            let sortedMovies = [...movies];
+            const isScore1Hidden = hiddenColumns.includes(3);
+            const isScore2Hidden = hiddenColumns.includes(4);
+            
+            if (showWinner) {
+                // WYNIKI: Sortuj według sumy punktów
+                sortedMovies.sort((a, b) => {
+                    const totalA = (parseFloat(a.score1) || 0) + (parseFloat(a.score2) || 0);
+                    const totalB = (parseFloat(b.score1) || 0) + (parseFloat(b.score2) || 0);
+                    return totalB - totalA;
+                });
+            } else if (isScore1Hidden && !isScore2Hidden) {
+                // PUNKTY #1 UKRYTE - stabilna randomizacja + live sorting dla #2
+                const moviesWithoutScore1 = movies.filter(m => m.score1 === '');
+                
+                // Użyj zapamiętanej randomizacji dla filmów z punktami #1
+                let stableRandomizedOrder1 = randomizedOrder1.filter(movie => 
+                    movies.some(m => m.id === movie.id)
+                );
+                
+                // LIVE SORTOWANIE filmów z punktami #1 według punktów #2
+                stableRandomizedOrder1.sort((a, b) => {
+                    const scoreA = parseFloat(a.score2) || 0;
+                    const scoreB = parseFloat(b.score2) || 0;
+                    if (scoreA === 0 && scoreB === 0) return 0; // Zachowaj randomizację dla filmów bez punktów #2
+                    return scoreB - scoreA;
+                });
+
+                // LIVE SORTOWANIE dla filmów bez punktów #1 według punktów #2
+                moviesWithoutScore1.sort((a, b) => {
+                    const scoreA = parseFloat(a.score2) || 0;
+                    const scoreB = parseFloat(b.score2) || 0;
+                    if (scoreA === 0 && scoreB === 0) return 0;
+                    return scoreB - scoreA;
+                });
+                
+                sortedMovies = [...stableRandomizedOrder1, ...moviesWithoutScore1];
+                
+            } else if (isScore2Hidden && !isScore1Hidden) {
+                // PUNKTY #2 UKRYTE - stabilna randomizacja + live sorting dla #1
+                const moviesWithoutScore2 = movies.filter(m => m.score2 === '');
+                
+                // Użyj zapamiętanej randomizacji dla filmów z punktami #2
+                let stableRandomizedOrder2 = randomizedOrder2.filter(movie => 
+                    movies.some(m => m.id === movie.id)
+                );
+                
+                // LIVE SORTOWANIE filmów z punktami #2 według punktów #1
+                stableRandomizedOrder2.sort((a, b) => {
+                    const scoreA = parseFloat(a.score1) || 0;
+                    const scoreB = parseFloat(b.score1) || 0;
+                    if (scoreA === 0 && scoreB === 0) return 0; // Zachowaj randomizację dla filmów bez punktów #1
+                    return scoreB - scoreA;
+                });
+
+                // LIVE SORTOWANIE dla filmów bez punktów #2 według punktów #1
+                moviesWithoutScore2.sort((a, b) => {
+                    const scoreA = parseFloat(a.score1) || 0;
+                    const scoreB = parseFloat(b.score1) || 0;
+                    if (scoreA === 0 && scoreB === 0) return 0;
+                    return scoreB - scoreA;
+                });
+                
+                sortedMovies = [...stableRandomizedOrder2, ...moviesWithoutScore2];
+                
+            } else if (!isScore1Hidden && !isScore2Hidden) {
+                // NORMALNE GŁOSOWANIE: Live sortowanie według aktywnej osoby
+                const count1 = usedScores1.length;
+                const count2 = usedScores2.length;
+                
+                if (count1 > 0 && count1 >= count2) {
+                    // Osoba #1 głosuje - sortuj według jej punktów
+                    sortedMovies.sort((a, b) => {
+                        const scoreA = parseFloat(a.score1) || 0;
+                        const scoreB = parseFloat(b.score1) || 0;
+                        if (scoreA === 0 && scoreB === 0) return 0;
+                        return scoreB - scoreA;
+                    });
+                } else if (count2 > 0) {
+                    // Osoba #2 głosuje - sortuj według jej punktów
+                    sortedMovies.sort((a, b) => {
+                        const scoreA = parseFloat(a.score2) || 0;
+                        const scoreB = parseFloat(b.score2) || 0;
+                        if (scoreA === 0 && scoreB === 0) return 0;
+                        return scoreB - scoreA;
+                    });
+                }
+            }
+            // Jeśli oba ukryte lub żadna osoba nie głosowała, zostaw oryginalną kolejność
+
+            sortedMovies.forEach((movie, index) => {
                 const row = document.createElement('tr');
                 const totalScore = (parseFloat(movie.score1) || 0) + (parseFloat(movie.score2) || 0);
                 
                 let rankClass = 'rank-other';
-                if (index === 0 && totalScore > 0) rankClass = 'rank-1';
-                else if (index === 1 && totalScore > 0) rankClass = 'rank-2';
-                else if (index === 2 && totalScore > 0) rankClass = 'rank-3';
+                let rankDisplay = '-';
+                if (showWinner && totalScore > 0) {
+                    rankDisplay = index + 1;
+                    if (index === 0) rankClass = 'rank-1';
+                    else if (index === 1) rankClass = 'rank-2';
+                    else if (index === 2) rankClass = 'rank-3';
+                }
+
+                // Proste pogrubienie dla filmów z głosami
+                const hasVotes = movie.score1 !== '' || movie.score2 !== '';
+                const titleWeight = hasVotes ? 'font-weight: 700;' : 'font-weight: 400;';
+
+                // Wygeneruj opcje dla select'ów
+                const generateOptions = (scoreType, currentValue) => {
+                    const usedScores = scoreType === 1 ? usedScores1 : usedScores2;
+                    let options = '<option value="">-</option>';
+                    
+                    for (let i = 1; i <= 10; i++) {
+                        const isUsed = usedScores.includes(i) && parseFloat(currentValue) !== i;
+                        const selected = parseFloat(currentValue) === i ? 'selected' : '';
+                        const disabled = isUsed ? 'disabled style="color: #ccc;"' : '';
+                        options += `<option value="${i}" ${selected} ${disabled}>${i}${isUsed ? ' (użyte)' : ''}</option>`;
+                    }
+                    
+                    return options;
+                };
+
+                // Sprawdź czy osoba #2 może głosować na ten film
+                const hasScore1 = movie.score1 !== '';
+                const canVoteScore2 = hasScore1; // Osoba #2 może głosować tylko na filmy z punktami #1
+                
+                const score2Select = canVoteScore2 ? 
+                    `<select class="score-input" onchange="updateScore(${movie.id}, 2, this.value)">
+                        ${generateOptions(2, movie.score2)}
+                    </select>` :
+                    `<select class="score-input" disabled style="background: #f5f5f5; color: #ccc;">
+                        <option>-</option>
+                    </select>`;
 
                 row.innerHTML = `
-                    <td><div class="rank ${rankClass}">${totalScore > 0 ? index + 1 : '-'}</div></td>
-                    <td><strong>${movie.title}</strong></td>
+                    <td><div class="rank ${rankClass}">${rankDisplay}</div></td>
+                    <td><span style="${titleWeight}">${movie.title}</span></td>
                     <td>${movie.link !== '#' ? `<a href="${movie.link}" target="_blank" class="movie-link">🔗 Link</a>` : '-'}</td>
                     <td class="score-column-1">
-                        <input type="number" min="1" max="10" class="score-input" 
-                               value="${movie.score1}" 
-                               onchange="updateScore(${movie.id}, 1, this.value)"
-                               placeholder="-">
+                        <select class="score-input" onchange="updateScore(${movie.id}, 1, this.value)">
+                            ${generateOptions(1, movie.score1)}
+                        </select>
                     </td>
                     <td class="score-column-2">
-                        <input type="number" min="1" max="10" class="score-input" 
-                               value="${movie.score2}" 
-                               onchange="updateScore(${movie.id}, 2, this.value)"
-                               placeholder="-">
+                        ${score2Select}
                     </td>
-                    <td><div class="total-score">${totalScore || '-'}</div></td>
+                    <td><div class="total-score">${showWinner ? (totalScore || '-') : '-'}</div></td>
                     <td>
                         <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8em;" 
                                 onclick="removeMovie(${movie.id})">🗑️</button>
@@ -491,13 +616,9 @@
         function updateScore(movieId, scoreType, value) {
             const movie = movies.find(m => m.id === movieId);
             if (movie) {
-                if (value === '' || (value >= 1 && value <= 10)) {
-                    movie[`score${scoreType}`] = value;
-                    updateStats();
-                } else {
-                    alert('OCENA MUSI BYĆ MIĘDZY 1 A 10!');
-                    renderTable();
-                }
+                movie[`score${scoreType}`] = value;
+                updateStats();
+                renderTable(); // Odśwież tabelę żeby zaktualizować pogrubienia
             }
         }
 
@@ -515,18 +636,40 @@
             const toggleText = document.getElementById(`toggle${columnIndex - 2}-text`);
 
             if (hiddenColumns.includes(columnIndex)) {
-                // Pokaż kolumnę
                 hiddenColumns = hiddenColumns.filter(col => col !== columnIndex);
                 document.querySelectorAll(columnClass).forEach(el => el.classList.remove('hidden'));
                 document.getElementById(headerClass).classList.remove('hidden');
-                toggleText.textContent = `UKRYJ OCENY #${columnIndex - 2}`;
+                toggleText.textContent = `UKRYJ PUNKTY #${columnIndex - 2}`;
+                
+                // Wyczyść zapamiętaną randomizację gdy pokazujemy punkty
+                if (columnIndex === 3) randomizedOrder1 = [];
+                if (columnIndex === 4) randomizedOrder2 = [];
             } else {
-                // Ukryj kolumnę
                 hiddenColumns.push(columnIndex);
                 document.querySelectorAll(columnClass).forEach(el => el.classList.add('hidden'));
                 document.getElementById(headerClass).classList.add('hidden');
-                toggleText.textContent = `POKAŻ OCENY #${columnIndex - 2}`;
+                toggleText.textContent = `POKAŻ PUNKTY #${columnIndex - 2}`;
+                
+                // Utwórz randomizację TYLKO raz gdy ukrywamy punkty
+                if (columnIndex === 3) {
+                    const moviesWithScore1 = movies.filter(m => m.score1 !== '');
+                    randomizedOrder1 = [...moviesWithScore1];
+                    for (let i = randomizedOrder1.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [randomizedOrder1[i], randomizedOrder1[j]] = [randomizedOrder1[j], randomizedOrder1[i]];
+                    }
+                } else if (columnIndex === 4) {
+                    const moviesWithScore2 = movies.filter(m => m.score2 !== '');
+                    randomizedOrder2 = [...moviesWithScore2];
+                    for (let i = randomizedOrder2.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [randomizedOrder2[i], randomizedOrder2[j]] = [randomizedOrder2[j], randomizedOrder2[i]];
+                    }
+                }
             }
+            
+            // Przeładuj tabelę żeby zaktualizować sortowanie po zmianie widoczności
+            renderTable();
         }
 
         function sortMovies() {
@@ -546,14 +689,12 @@
                 return;
             }
 
-            // Najpierw sortuj żeby znaleźć winnera
             const completeMovies = movies.filter(m => m.score1 && m.score2);
             if (completeMovies.length === 0) {
-                alert('BRAK OCENIONYCH FILMÓW!');
+                alert('BRAK FILMÓW Z PUNKTAMI!');
                 return;
             }
 
-            // Znajdź winnera
             const winner = completeMovies.reduce((max, movie) => {
                 const totalScore = (parseFloat(movie.score1) || 0) + (parseFloat(movie.score2) || 0);
                 const maxScore = (parseFloat(max.score1) || 0) + (parseFloat(max.score2) || 0);
@@ -563,29 +704,37 @@
             const winnerScore = (parseFloat(winner.score1) || 0) + (parseFloat(winner.score2) || 0);
 
             if (confirm(`CZY NA PEWNO CHCESZ ZAKOŃCZYĆ GŁOSOWANIE?\nZWYCIĘZCA "${winner.title}" ZOSTANIE USUNIĘTY Z BAZY I DODANY DO HISTORII OBEJRZANYCH.`)) {
-                // Dodaj winnera do listy obejrzanych (z datą)
                 winners.push({
                     id: Date.now(),
                     title: winner.title,
                     link: winner.link,
                     score: winnerScore,
+                    score1: winner.score1,
+                    score2: winner.score2,
+                    originalId: winner.id,
                     date: new Date().toLocaleDateString('pl-PL')
                 });
 
-                // USUŃ WINNERA Z GŁÓWNEJ BAZY!
                 movies = movies.filter(m => m.id !== winner.id);
 
-                // Wyczyść oceny dla pozostałych filmów
                 movies.forEach(movie => {
                     movie.score1 = '';
                     movie.score2 = '';
                 });
 
-                // Randomizuj pozostałą listę filmów dla następnego głosowania
                 for (let i = movies.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [movies[i], movies[j]] = [movies[j], movies[i]];
                 }
+
+                // Wyczyść zapamiętane randomizacje
+                randomizedOrder1 = [];
+                randomizedOrder2 = [];
+                hiddenColumns = [];
+
+                // Przywróć przyciski do stanu początkowego
+                document.getElementById('toggle1-text').textContent = 'UKRYJ PUNKTY #1';
+                document.getElementById('toggle2-text').textContent = 'UKRYJ PUNKTY #2';
 
                 showWinner = false;
                 renderTable();
@@ -593,13 +742,67 @@
                 updateStats();
                 document.getElementById('winner-announcement').classList.add('hidden');
                 
-                alert(`🏆 "${winner.title}" WYGRAŁ I ZOSTAŁ USUNIĘTY Z BAZY!\nLISTA ZOSTAŁA PRZEMIESZANA - MOŻECIE GŁOSOWAĆ NA POZOSTAŁE FILMY!`);
+                alert(`🏆 "${winner.title}" WYGRAŁ I ZOSTAŁ USUNIĘTY Z BAZY!\nPUNKTY ZOSTAŁY WYCZYSZCZONE - MOŻECIE GŁOSOWAĆ NA POZOSTAŁE FILMY!`);
+            }
+        }
+
+        function undoLastVoting() {
+            if (winners.length === 0) {
+                alert('BRAK GŁOSOWAŃ DO COFNIĘCIA!');
+                return;
+            }
+
+            const lastWinner = winners[winners.length - 1];
+            
+            if (confirm(`CZY NA PEWNO CHCESZ COFNĄĆ OSTATNIE GŁOSOWANIE?\nFILM "${lastWinner.title}" WRÓCI DO BAZY Z PUNKTAMI.`)) {
+                movies.push({
+                    id: lastWinner.originalId || Date.now(),
+                    title: lastWinner.title,
+                    link: lastWinner.link,
+                    score1: lastWinner.score1,
+                    score2: lastWinner.score2
+                });
+
+                // Usuń winnera z historii
+                winners.pop();
+
+                // Przywróć stan randomizacji i kolumn
+                randomizedOrder1 = [];
+                randomizedOrder2 = [];
+                hiddenColumns = [];
+                document.getElementById('toggle1-text').textContent = 'UKRYJ PUNKTY #1';
+                document.getElementById('toggle2-text').textContent = 'UKRYJ PUNKTY #2';
+
+                showWinner = true;
+                renderTable();
+                renderWinners();
+                updateStats();
+                
+                const completeMovies = movies.filter(m => m.score1 && m.score2);
+                if (completeMovies.length > 0) {
+                    movies.sort((a, b) => {
+                        const totalA = (parseFloat(a.score1) || 0) + (parseFloat(a.score2) || 0);
+                        const totalB = (parseFloat(b.score1) || 0) + (parseFloat(b.score2) || 0);
+                        return totalB - totalA;
+                    });
+                    renderTable();
+                    checkWinner();
+                }
+                
+                alert(`↩️ COFNIĘTO! "${lastWinner.title}" WRÓCIŁ DO BAZY Z PUNKTAMI!`);
             }
         }
 
         function renderWinners() {
             const winnersList = document.getElementById('winners-list');
             const winnersSection = document.getElementById('winners-section');
+            const undoButton = document.getElementById('undoButton');
+            
+            if (winners.length > 0) {
+                undoButton.style.display = 'block';
+            } else {
+                undoButton.style.display = 'none';
+            }
             
             if (winners.length === 0) {
                 winnersSection.classList.add('hidden');
@@ -608,12 +811,11 @@
 
             winnersSection.classList.remove('hidden');
             
-            // Sortuj zwycięzców: najpierw według punktacji (malejąco), potem alfabetycznie
             const sortedWinners = [...winners].sort((a, b) => {
                 if (a.score !== b.score) {
-                    return b.score - a.score; // Punkty malejąco
+                    return b.score - a.score;
                 }
-                return a.title.localeCompare(b.title, 'pl', { sensitivity: 'base' }); // Alfabetycznie
+                return a.title.localeCompare(b.title, 'pl', { sensitivity: 'base' });
             });
             
             winnersList.innerHTML = '';
@@ -648,29 +850,6 @@
             });
         }
 
-        function markAsWatched(winnerId) {
-            const winner = winners.find(w => w.id === winnerId);
-            if (winner && confirm(`CZY NA PEWNO OBEJRZELIŚCIE "${winner.title}"?`)) {
-                winners = winners.filter(w => w.id !== winnerId);
-                renderWinners();
-                updateStats();
-                alert(`🎬 "${winner.title}" ZOSTAŁ USUNIĘTY Z KOLEJKI!`);
-            }
-        }
-
-        function clearScores() {
-            if (confirm('CZY NA PEWNO CHCESZ WYCZYŚCIĆ WSZYSTKIE OCENY?')) {
-                movies.forEach(movie => {
-                    movie.score1 = '';
-                    movie.score2 = '';
-                });
-                showWinner = false;
-                renderTable();
-                updateStats();
-                document.getElementById('winner-announcement').classList.add('hidden');
-            }
-        }
-
         function updateStats() {
             const totalMovies = movies.length;
             const selectedMovies = winners.length;
@@ -700,7 +879,6 @@
             }
         }
 
-        // Dodaj kilka przykładowych filmów
         function addSampleMovies() {
             const samples = [
                 { title: 'Ojciec Chrzestny', link: 'https://www.imdb.com/title/tt0068646/' },
@@ -722,7 +900,6 @@
             updateStats();
         }
 
-        // Pozwól na dodawanie filmu przez Enter
         document.getElementById('movieTitle').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 addMovie();
@@ -735,7 +912,6 @@
             }
         });
 
-        // Inicjalizacja z przykładowymi filmami
         addSampleMovies();
         renderWinners();
     </script>
