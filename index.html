@@ -21,6 +21,92 @@
             --hover-bg: rgba(102, 126, 234, 0.05);
         }
 
+        function exportData() {
+            try {
+                const exportObject = {
+                    movies: movies,
+                    winners: winners,
+                    hiddenColumns: hiddenColumns,
+                    randomizedOrder1: randomizedOrder1,
+                    randomizedOrder2: randomizedOrder2,
+                    showWinner: showWinner,
+                    exportDate: new Date().toLocaleString('pl-PL'),
+                    version: '1.0'
+                };
+
+                const dataStr = JSON.stringify(exportObject, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(dataBlob);
+                link.download = `filmowe-wybieransko-backup-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                alert('✅ BAZA DANYCH ZOSTAŁA WYEKSPORTOWANA!\nPlik został zapisany w folderze Pobrane.');
+            } catch (error) {
+                console.error('Błąd eksportu:', error);
+                alert('❌ BŁĄD PODCZAS EKSPORTU DANYCH!');
+            }
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // Sprawdź czy to właściwy format
+                    if (!importedData.movies || !Array.isArray(importedData.movies)) {
+                        alert('❌ NIEPRAWIDŁOWY FORMAT PLIKU!');
+                        return;
+                    }
+
+                    if (confirm('CZY NA PEWNO CHCESZ WCZYTAĆ DANE Z PLIKU?\n\nTO ZASTĄPI WSZYSTKIE OBECNE DANE:\n- Filmy w bazie\n- Historię obejrzanych\n- Wszystkie ustawienia\n\nTej operacji nie można cofnąć!')) {
+                        movies = importedData.movies || [];
+                        winners = importedData.winners || [];
+                        hiddenColumns = importedData.hiddenColumns || [];
+                        randomizedOrder1 = importedData.randomizedOrder1 || [];
+                        randomizedOrder2 = importedData.randomizedOrder2 || [];
+                        showWinner = importedData.showWinner || false;
+
+                        // Przywróć stan przycisków
+                        document.getElementById('toggle1-text').textContent = 'UKRYJ PUNKTY #1';
+                        document.getElementById('toggle2-text').textContent = 'UKRYJ PUNKTY #2';
+                        document.getElementById('toggle1-btn').disabled = false;
+                        
+                        hiddenColumns.forEach(col => {
+                            if (col === 3) {
+                                document.getElementById('toggle1-text').textContent = 'ZABLOKOWANE';
+                                document.getElementById('toggle1-btn').disabled = true;
+                            } else if (col === 4) {
+                                document.getElementById('toggle2-text').textContent = 'POKAŻ PUNKTY #2';
+                            }
+                        });
+
+                        saveData();
+                        renderTable();
+                        renderWinners();
+                        updateStats();
+                        
+                        const importDate = importedData.exportDate ? `\n(Eksport z: ${importedData.exportDate})` : '';
+                        alert(`✅ DANE ZOSTAŁY POMYŚLNIE WCZYTANE!${importDate}`);
+                    }
+                } catch (error) {
+                    console.error('Błąd importu:', error);
+                    alert('❌ BŁĄD PODCZAS WCZYTYWANIA PLIKU!\nUpewnij się, że wybrałeś właściwy plik JSON.');
+                }
+            };
+            
+            reader.readAsText(file);
+            // Wyczyść input aby można było wczytać ten sam plik ponownie
+            event.target.value = '';
+        }
+
         [data-theme="dark"] {
             /* Dark theme colors */
             --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -495,6 +581,7 @@
             </button>
             <button class="btn btn-primary" onclick="sortMovies()">📊 WYNIKI</button>
             <button class="btn btn-secondary" onclick="undoLastVoting()" id="undoButton" style="background: linear-gradient(45deg, #6c757d, #495057); display: none;">↩️ COFNIJ</button>
+            <button class="btn btn-secondary" onclick="restartVoting()" style="background: linear-gradient(45deg, #ff8c00, #ffa500);">🔄 RESTART</button>
             <button class="btn btn-primary" onclick="finishVoting()" style="background: linear-gradient(45deg, #28a745, #20c997);">🏁 ZAKOŃCZ GŁOSOWANIE</button>
         </div>
 
@@ -537,6 +624,15 @@
             <div class="stat-card">
                 <div class="stat-number" id="selectedMovies">0</div>
                 <div>OBEJRZANYCH FILMÓW</div>
+            </div>
+        </div>
+
+        <div class="export-import-section" style="background: var(--bg-card); border-radius: 15px; padding: 20px; margin-top: 20px; box-shadow: 0 10px 30px var(--shadow-color); transition: all 0.3s ease;">
+            <h3 style="color: var(--text-primary); margin-bottom: 15px; text-align: center;">💾 BACKUP DANYCH</h3>
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="exportData()" style="background: linear-gradient(45deg, #28a745, #20c997);">📤 EKSPORT BAZY</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()" style="background: linear-gradient(45deg, #ffc107, #ffca2c);">📥 IMPORT BAZY</button>
             </div>
         </div>
 
@@ -619,12 +715,12 @@
             if (body.getAttribute('data-theme') === 'dark') {
                 body.removeAttribute('data-theme');
                 themeIcon.textContent = '🌙';
-                themeText.textContent = 'Dark';
+                themeText.textContent = 'CIEMNY';
                 localStorage.setItem('theme', 'light');
             } else {
                 body.setAttribute('data-theme', 'dark');
                 themeIcon.textContent = '☀️';
-                themeText.textContent = 'Light';
+                themeText.textContent = 'JASNY';
                 localStorage.setItem('theme', 'dark');
             }
         }
@@ -637,10 +733,10 @@
             if (savedTheme === 'dark') {
                 document.body.setAttribute('data-theme', 'dark');
                 themeIcon.textContent = '☀️';
-                themeText.textContent = 'Light';
+                themeText.textContent = 'JASNY';
             } else {
                 themeIcon.textContent = '🌙';
-                themeText.textContent = 'Dark';
+                themeText.textContent = 'CIEMNY';
             }
         }
 
